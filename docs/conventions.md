@@ -16,6 +16,18 @@ Documentation is discoverable top-down:
 2. The experiment `README.md` links to every document in its `docs/` directory.
 3. Documents in `docs/` may link to each other, but nothing outside the experiment should link directly into them. Go through the experiment README.
 
+## Diagrams
+
+Diagrams in any README or doc are Mermaid code blocks, never ASCII art. Directory trees in a plain code block are not diagrams and are fine.
+
+The design rules live in the `mermaid-diagrams` skill (`.claude/skills/mermaid-diagrams/SKILL.md`). In short:
+
+- `flowchart TD` (or `LR` for short linear flows), 6 to 12 nodes.
+- 3 or 4 `classDef` styles with explicit text colors, so the diagram reads in both GitHub light and dark modes. Do not rely on the default theme.
+- Labels in double quotes, 2-4 words per line, with shapes that carry meaning.
+- Related nodes grouped in `subgraph` blocks with bold titles, and labeled conditional arrows.
+- A two-sentence explanation directly below the diagram.
+
 ## Adding an experiment
 
 Use the `experiment` skill (`/experiment new <name>`), or do it by hand:

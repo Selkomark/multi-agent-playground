@@ -4,15 +4,50 @@
 
 A rough business description goes in, and a price-ordered list of purchasable domain names comes out.
 
+```mermaid
+flowchart TD
+    BRIEF(["Business idea"]) --> NAMING
+
+    subgraph ORCH1["<b>Orchestrator process (ADK)</b>"]
+        NAMING["Naming agent<br/>(LLM)"]
+    end
+
+    subgraph PROVIDERS["<b>Provider agents, one process each</b>"]
+        GODADDY["GoDaddy agent<br/>MCP: GoDaddy API"]
+        NAMECOM["Name.com agent<br/>MCP: Name.com API"]
+        PORKBUN["Porkbun agent<br/>MCP: Porkbun API"]
+        REGISTRY["Registry agent<br/>MCP: RDAP lookup"]
+    end
+
+    NAMING -->|A2A| GODADDY
+    NAMING -->|A2A| NAMECOM
+    NAMING -->|A2A| PORKBUN
+    NAMING -->|A2A| REGISTRY
+
+    subgraph ORCH2["<b>Orchestrator process (ADK)</b>"]
+        COLLECTOR["Collector<br/>(code)"]
+        JUDGE["Judge<br/>(LLM)"]
+        RANKER["Ranker<br/>(code)"]
+        COLLECTOR --> JUDGE --> RANKER
+    end
+
+    GODADDY -->|Report| COLLECTOR
+    NAMECOM -->|Report| COLLECTOR
+    PORKBUN -->|Report| COLLECTOR
+    REGISTRY -->|Report| COLLECTOR
+    RANKER --> LIST(["List ordered<br/>by price"])
+
+    classDef entry fill:#1f2937,stroke:#9ca3af,stroke-width:1.5px,color:#ffffff
+    classDef llm fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#111827
+    classDef code fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#111827
+    classDef remote fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#111827
+    class BRIEF,LIST entry
+    class NAMING,JUDGE llm
+    class COLLECTOR,RANKER code
+    class GODADDY,NAMECOM,PORKBUN,REGISTRY remote
 ```
-                        orchestrator process (ADK)                    one process per provider
- brief -> naming agent -> provider_checks -+- A2A -> godaddy agent  - MCP -> GoDaddy API
-              (LLM)        (parallel)      +- A2A -> namecom agent  - MCP -> Name.com API
-                                           +- A2A -> porkbun agent  - MCP -> Porkbun API
-                                           +- A2A -> registry agent - MCP -> RDAP
-                               |
-                           collector (code) -> judge (LLM) -> ranker (code) -> list ordered by price
-```
+
+The naming agent's candidates go to four provider agents at the same time over A2A, and each provider agent reaches its provider through an MCP tool. Their reports are validated, judged and ranked back in the orchestrator, which is one process shown in two parts to keep the flow top to bottom.
 
 Three standards are used, each for one kind of communication:
 

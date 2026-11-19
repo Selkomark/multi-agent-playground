@@ -28,6 +28,7 @@ experiments/
 4. **Experiment-specific docs never go in the root `docs/`.** Only project-wide material lives there.
 5. **Links flow downward**: root README -> experiment README -> experiment docs. Do not link from the root README directly into an experiment's `docs/`.
 6. **Naming**: lowercase kebab-case, numeric prefix. Pick the next unused number by listing `experiments/`.
+7. **Diagrams are Mermaid, never ASCII art.** Follow the `mermaid-diagrams` skill for their design. Directory trees in a plain code block are not diagrams.
 
 ## Commands
 
