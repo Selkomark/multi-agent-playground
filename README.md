@@ -21,3 +21,4 @@ Conventions are documented in [docs/conventions.md](docs/conventions.md) and enf
 | # | Experiment | Summary |
 |---|------------|---------|
 | 01 | [Domain Name Research](experiments/01-domain-name-research/README.md) | Agents propose domain names for a business idea, check availability and price per provider, and rank them by price |
+| 02 | [H2H: Harness-to-Harness Orchestration](experiments/02-h2h/README.md) | Design for harnesses working as a team of domain owners, coordinated through tickets and human approval (documentation only) |
