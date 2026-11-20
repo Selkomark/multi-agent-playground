@@ -10,7 +10,7 @@ A spike is throwaway code that answers one question. It is not the start of H2H,
 |---|---|---|---|
 | 01 | [Session state](01-session-state/README.md) | Can H2H tell whether a harness is working, waiting for input, finished or hung, without reading its screen? | **Passed** for Claude Code, Copilot and Codex. Unattended start needs a trust step |
 | 02 | [Permission policy](02-permission-policy/README.md) | Can a harness's permission request be answered in code, by policy, with allow, deny and "ask the user"? | **Passed** for Claude Code, Copilot and Codex. Long waits are untested |
-| 03 | [Baseline](03-baseline/README.md) | On one task, how do two harness sessions with a ticket handoff compare with one harness using its own sub-agents, in cost and rework? | In progress |
+| 03 | [Baseline](03-baseline/README.md) | On one task, how do two harness sessions with a ticket handoff compare with one harness using its own sub-agents, in cost and rework? | **Done**, small sample. No cost penalty for two sessions on a small task. Testers from another product found real defects that a same-model tester and the hidden tests missed |
 
 Each spike has its own directory with a README that states the question, the method, how to run it and the result. Run output goes to `runs/` inside each spike and is not committed.
 

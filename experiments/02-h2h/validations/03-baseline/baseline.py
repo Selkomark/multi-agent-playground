@@ -18,6 +18,7 @@ import argparse
 import json
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -27,7 +28,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 SPEC = HERE / "task" / "SPEC.md"
 MAX_ROUNDS = 3
-TIMEOUT = 900
+TIMEOUT = 300   # seconds allowed per harness call
+LINGER = 15     # seconds a process may stay alive after it has printed its result
 
 SINGLE_PROMPT = """Read SPEC.md in this folder and implement it.
 
@@ -77,35 +79,68 @@ def binary(name: str) -> str:
     return found
 
 
-def call(argv: list[str], cwd: Path, log: Path) -> tuple[str, float]:
+def call(argv: list[str], cwd: Path, log: Path, done_marker: str | None = None) -> tuple[str, float, str]:
+    """Run one harness call. Returns its output, the seconds it took, and how it ended:
+
+        ok        the process exited by itself
+        lingered  it printed its result (done_marker) but did not exit, and was stopped
+        timeout   it was stopped at TIMEOUT without a result
+    """
     started = time.time()
-    done = subprocess.run(argv, cwd=cwd, env=ENV, capture_output=True, text=True, timeout=TIMEOUT)
-    seconds = time.time() - started
-    with open(log, "a") as f:
-        f.write(f"\n$ {' '.join(a if len(a) < 80 else '<prompt>' for a in argv)}\n")
-        f.write(done.stdout + "\n--- stderr ---\n" + done.stderr + "\n")
-    return done.stdout, seconds
+    out_path = log.parent / f"call-{time.time_ns()}.out"
+    status = "ok"
+    with open(out_path, "w") as out, open(log, "a") as err:
+        err.write(f"\n$ {' '.join(a if len(a) < 80 else '<prompt>' for a in argv)}\n")
+        err.flush()
+        process = subprocess.Popen(
+            argv, cwd=cwd, env=ENV, stdin=subprocess.DEVNULL, stdout=out, stderr=err, start_new_session=True
+        )
+        finished_at = None
+        while process.poll() is None:
+            time.sleep(0.5)
+            now = time.time()
+            if done_marker and finished_at is None and done_marker in out_path.read_text(errors="replace"):
+                finished_at = now
+            if finished_at and now - finished_at > LINGER:
+                status = "lingered"
+            elif now - started > TIMEOUT:
+                status = "timeout"
+            else:
+                continue
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+                process.wait(timeout=10)
+            except (ProcessLookupError, subprocess.TimeoutExpired):
+                process.kill()
+            break
+    seconds = (finished_at or time.time()) - started
+    return out_path.read_text(errors="replace"), seconds, status
 
 
 def run_claude(prompt: str, cwd: Path, log: Path, model: str, resume: str | None = None) -> dict:
     argv = [
-        binary("claude"), "-p", prompt, "--output-format", "json", "--model", model,
+        binary("claude"), "-p", prompt, "--output-format", "stream-json", "--verbose", "--model", model,
         "--permission-mode", "acceptEdits", "--setting-sources", "project", "--max-budget-usd", "3",
         "--allowedTools", "Bash(python3:*),Bash(python:*),Bash(ls:*),Bash(cat:*)",
     ]
     if resume:
         argv += ["--resume", resume]
-    out, seconds = call(argv, cwd, log)
-    try:
-        data = json.loads(out)
-        if isinstance(data, list):  # some versions print the event list
-            data = next(e for e in reversed(data) if e.get("type") == "result")
-    except (ValueError, StopIteration):
-        return {"harness": "claude", "seconds": round(seconds, 1), "error": out[-400:]}
+    out, seconds, status = call(argv, cwd, log, done_marker='"total_cost_usd"')
+    data = None
+    for line in out.splitlines():
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(event, dict) and event.get("type") == "result":
+            data = event
+    if data is None:
+        return {"harness": "claude", "seconds": round(seconds, 1), "ended": status, "error": f"no result ({status})"}
     usage = data.get("usage") or {}
     return {
         "harness": "claude",
         "seconds": round(seconds, 1),
+        "ended": status,
         "usd": data.get("total_cost_usd"),
         "turns": data.get("num_turns"),
         "input_tokens": (usage.get("input_tokens") or 0)
@@ -119,7 +154,7 @@ def run_claude(prompt: str, cwd: Path, log: Path, model: str, resume: str | None
 
 def run_codex(prompt: str, cwd: Path, log: Path) -> dict:
     argv = [binary("codex"), "exec", "--json", "--sandbox", "workspace-write", "--skip-git-repo-check", prompt]
-    out, seconds = call(argv, cwd, log)
+    out, seconds, status = call(argv, cwd, log)
     tokens_in = tokens_out = 0
     for line in out.splitlines():
         try:
@@ -130,7 +165,11 @@ def run_codex(prompt: str, cwd: Path, log: Path) -> dict:
         if usage:
             tokens_in += usage.get("input_tokens") or 0
             tokens_out += usage.get("output_tokens") or 0
-    return {"harness": "codex", "seconds": round(seconds, 1), "input_tokens": tokens_in, "output_tokens": tokens_out}
+    result = {"harness": "codex", "seconds": round(seconds, 1), "ended": status,
+              "input_tokens": tokens_in, "output_tokens": tokens_out}
+    if status == "timeout":
+        result["error"] = "timeout"
+    return result
 
 
 def run_copilot(prompt: str, cwd: Path, log: Path) -> dict:
@@ -140,8 +179,10 @@ def run_copilot(prompt: str, cwd: Path, log: Path) -> dict:
         "--allow-tool=write", "--allow-tool=shell(python3:*)", "--allow-tool=shell(python:*)",
         f"--usage-output-file={usage_file}",
     ]
-    _, seconds = call(argv, cwd, log)
-    result: dict = {"harness": "copilot", "seconds": round(seconds, 1)}
+    _, seconds, status = call(argv, cwd, log)
+    result: dict = {"harness": "copilot", "seconds": round(seconds, 1), "ended": status}
+    if status == "timeout":
+        result["error"] = "timeout"
     if usage_file.exists():
         result["usage"] = json.loads(usage_file.read_text())
     return result
@@ -226,6 +267,7 @@ def summarise(arm: str, outcome: dict) -> dict:
         "builder_usd": round(sum(s.get("usd") or 0 for s in claude if s["role"] != "tester"), 4),
         "tokens": sum((s.get("input_tokens") or 0) + (s.get("output_tokens") or 0) for s in steps),
         "seconds": round(sum(s["seconds"] for s in steps)),
+        "lingered": sum(s.get("ended") == "lingered" for s in steps),
         "errors": [s["error"] for s in steps if s.get("error")],
     }
 
@@ -249,7 +291,7 @@ def main() -> None:
             row = {"repeat": repeat, "model": args.model, **summarise(arm, outcome)}
             rows.append(row)
             print(f"  score {row['score']}  first hand-off {row['first_handoff']}  rounds {row['rounds']}  "
-                  f"claude ${row['claude_usd']}  tokens {row['tokens']}  {row['seconds']}s"
+                  f"claude ${row['claude_usd']}  tokens {row['tokens']}  {row['seconds']}s  lingered {row['lingered']}"
                   + (f"  ERRORS {row['errors']}" if row["errors"] else ""), flush=True)
             if outcome["final"]["failed"]:
                 print(f"  failed: {outcome['final']['failed'][:8]}", flush=True)
