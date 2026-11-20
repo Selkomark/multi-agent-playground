@@ -174,7 +174,7 @@ Code moves between owners through version control: the builder commits, and the 
 ## Example: build and test a UI
 
 1. A ticket asks for a UI feature. The builder owner implements it and reports a commit and a summary.
-2. A test ticket goes to the tester owner with the commit reference and the acceptance criteria.
+2. The builder has already tested its own work and attached the evidence. A test ticket then goes to the tester owner with the commit reference and the acceptance criteria.
 3. The tester starts the app, drives the UI and reports pass or fail with the failures listed.
 4. Failures go back to the builder as a rejection with reasons. The loop repeats until tests pass or a round limit is reached.
 5. Depending on the approval rules, the result is accepted automatically or waits for the human.

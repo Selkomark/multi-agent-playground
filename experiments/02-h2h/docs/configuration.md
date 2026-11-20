@@ -24,6 +24,7 @@ Declared config and runtime state are kept apart. A config file that fills up wi
 | Budgets | Approvals and rejections |
 | Approval rules by ticket type | Session history |
 | What counts as proof for each kind of work | |
+| How much checking each ticket type gets: self-check only, or with an independent tester, and which harness tests | Test reviews and the defects reported |
 | Round limits and other guardrails | Running sessions, their workspaces and logs |
 | The paths each domain owns | Usage per ticket: model, effort, tokens, rounds, outcome |
 | Model and effort per domain and per phase of work | Estimates and actuals |

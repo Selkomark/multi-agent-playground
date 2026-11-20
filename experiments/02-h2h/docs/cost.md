@@ -94,6 +94,7 @@ One small task was done by one harness using sub-agents and by a builder and a t
 - **The handoff itself was not expensive.** Two Claude sessions cost $0.023 to $0.025, against $0.028 to $0.048 for one session with sub-agents.
 - **Testing cost as much as building**, or up to twice as much.
 - **A rework round roughly doubled the builder's cost.** Rework is recorded as a cost of its own per ticket.
+- **So the independent test is a setting.** The builder always checks its own work. Whether a second harness also tests it is chosen per ticket type, because it can double the cost of a ticket; see [governance.md](governance.md).
 
 This was two sessions on an easy task. The cost reported for existing tools comes from coordinating many agents, which was not tested.
 

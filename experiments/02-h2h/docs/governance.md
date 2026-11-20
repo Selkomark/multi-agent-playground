@@ -20,10 +20,13 @@ flowchart TD
     OPEN(["Ticket opened"]) --> WORK["Owner works"]
     WORK -->|Blocked| HELP["Human unblocks"]
     HELP --> WORK
-    WORK --> PROOF["Attach proof"]
+    WORK --> SELF["Owner checks<br/>own work"]
+    SELF --> PROOF["Attach proof"]
     PROOF --> VERIFY{"Proof verified?"}
     VERIFY -->|No| WORK
-    VERIFY -->|Yes| RISK{"Needs human?"}
+    VERIFY -->|Yes| TEST{"Independent<br/>tester passes?"}
+    TEST -->|No, with defects| WORK
+    TEST -->|Yes, or not required| RISK{"Needs human?"}
     RISK -->|Yes| REVIEW["Human review"]
     REVIEW --> DECIDE{"Approved?"}
     DECIDE -->|No, with reason| WORK
@@ -35,12 +38,12 @@ flowchart TD
     classDef check fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#111827
     classDef human fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#111827
     class OPEN,DONE entry
-    class WORK,PROOF harness
-    class VERIFY,RISK,DECIDE check
+    class WORK,SELF,PROOF harness
+    class VERIFY,TEST,RISK,DECIDE check
     class HELP,REVIEW human
 ```
 
-A ticket is done only after its proof is verified and, where the rules require it, a human approves. A rejection always carries a reason and sends the ticket back to its owner.
+The owner checks its own work before handing it over, and an independent tester is the gate after that. A ticket is done only after its proof is verified, the tester passes it where one is required, and a human approves where the rules require it. A rejection always carries a reason and sends the ticket back to its owner.
 
 ## Proof of work
 
@@ -56,9 +59,33 @@ Who runs the check is not settled. The proposed answer is that H2H runs it, in a
 
 Checks run by H2H do not replace a reviewer. In the baseline validation, code that passed 75 hidden test cases still had two real defects, each found by a tester harness from a different product; see [findings.md](findings.md).
 
-### Who tests
+## Who checks the work
 
-The tester of a piece of work should be a different harness product from its builder where the team has one. In the baseline validation, testers from another product found defects in two of four runs, and a second session of the builder's own product found none in two. The sample is small, so this is a default to measure, not a rule.
+The rule is the one a good team follows: read other people's work once, and your own twice before you send it. Responsibility for the work stays with the one who did it, and others are the final gate.
+
+| Check | Who | What it is for |
+|---|---|---|
+| Self-check | The owner that built the work | The owner is responsible for what it hands over. It tests its own work and attaches the evidence. Always required |
+| Verification | H2H, in code | Re-runs the declared checks on the reported commit, so the evidence is not self-reported |
+| Independent test | A tester that did not build the work | The final gate before approval. It writes and runs its own tests and reports defects with reasons |
+
+The independent tester does not lower the bar for the builder. Work that arrives untested is sent back as a rejection, and counted as rework against the builder.
+
+### The independent test is configurable
+
+A second harness testing every ticket adds cost. In the baseline validation the tester spent as much as the builder, or up to twice as much, and each round it sent back roughly doubled the builder's cost; see [findings.md](findings.md). How much checking a ticket gets is therefore set in the config, per ticket type:
+
+| Level | Checks | Suited to |
+|---|---|---|
+| Self-check only | Self-check and verification | Low-risk, reversible work that the declared checks cover well |
+| Independent test | Self-check, verification and an independent tester | The default |
+| Independent test and human | All of the above, then human review | Judgment calls, and anything irreversible or outward-facing |
+
+The self-check is never switched off. Only the independent test is negotiable.
+
+### Choosing the tester
+
+The tester should be a different harness product from the builder where the team has one. In the baseline validation, testers from another product found real defects in two of four runs, in work the builder had already checked itself, and a second session of the builder's own product found none in two. The sample is small, so this is a default to measure, not a rule.
 
 ## Approval rules
 

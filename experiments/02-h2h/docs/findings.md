@@ -268,7 +268,8 @@ Each was fixed by the builder in one round and passed by the tester on the secon
 | Turn end and process exit are both unreliable as "done" | "Done" needs a report or verified proof, and non-interactive runs need a time limit | [runtime.md](runtime.md) |
 | A permission hook can allow, deny and wait | The three-layer permission design is confirmed for these harnesses, and "waiting for permission" becomes a request held by H2H | [permissions.md](permissions.md) |
 | Codex asks only when its model chooses to | Each adapter writes standing instructions for its harness | [permissions.md](permissions.md) |
-| A different product makes a more independent tester | Recommended default: the tester of a piece of work is a different product from its builder | [governance.md](governance.md) |
+| The builder's own checks missed defects that another tester found, and testing cost as much as building | Two checks: the builder always tests its own work, and an independent tester is the gate after it. The independent test is the default and can be switched off per ticket type to save cost | [governance.md](governance.md) |
+| A different product makes a more independent tester | Recommended default: the independent tester is a different product from the builder | [governance.md](governance.md) |
 | Hidden checks missed real defects | Proof run by H2H does not replace an independent reviewer | [governance.md](governance.md) |
 | Rework doubles the builder's cost, and usage units differ | Rework is recorded as its own cost, and budgets are kept per harness in its own unit | [cost.md](cost.md) |
 

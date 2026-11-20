@@ -58,6 +58,7 @@ The useful question is "what breaks at the boundary", more than "is the output b
 - **Session resume.** Which harnesses can resume by session ID, needed for take over and for recovery after a reboot. Claude Code can.
 - **Subscription logins.** Whether a personal subscription may be used for unattended runs, per provider.
 - **Budget.** Each product reports usage in a different unit (dollars, tokens, AI credits). Whether budgets stay per harness in its own unit or are converted to one.
+- **Level of checking.** Which ticket types can safely skip the independent tester, and what that saves. The builder's self-check is always required.
 - **Cross-product testing.** Whether a tester from a different product reliably finds more than a second session of the builder's product, as the baseline suggested.
 - **A2A for Go.** Whether an official A2A library for Go exists and is current. Believed so, not verified. Only matters for remote harnesses.
 - **Keeper pause.** How a keeper pauses a harness safely when the orchestrator is unreachable.
