@@ -29,6 +29,30 @@ In the `h2h` arms the tester writes a review file. Failures go back to the build
 
 Every arm is scored by `acceptance.py`, a set of 75 hidden test cases that no harness sees. The score is taken at the builder's first hand-off and at the end.
 
+### The hidden tests
+
+The cases were checked against a reference solution before use.
+
+| Group | Cases | Examples |
+|---|---|---|
+| Valid input parses to the right value | 22 | `1w2d3h4m5s6ms`, `1H30M`, `0.0005s` is 1, `-2.5ms` is -3, `0` |
+| Invalid input raises `ValueError` | 21 | `30m1h`, `1h2h`, `1.5h30m`, `1 h`, `10`, `+1h`, `.5h`, `1e3s` |
+| Wrong type raises `TypeError` | 5 | `None`, `5`, `1.5`, bytes, a list |
+| Formatting gives the canonical string | 11 | 5400000 is `1h30m`, 0 is `0s`, 691200000 is `1w1d` |
+| Formatting a wrong type raises `TypeError` | 5 | `None`, a string, `1.5`, `True`, `False` |
+| Round trip: parse of format returns the input | 11 | 0, -1, 86399999, 123456789012 |
+
+### The prompts
+
+| Role | Instruction, in short |
+|---|---|
+| `single` | Implement the spec. Have one sub-agent build and a different sub-agent test with its own tests, fix what it finds, and finish when the tester finds no defects |
+| Builder | Implement the spec and check your own work. A separate tester will review it |
+| Tester | You did not write this code. Test it against the spec with tests you write and run, do not edit it, and write `review.json` with a verdict and a list of defects |
+| Builder, after a failed review | Here are the reported defects. Fix the code to follow the spec, or say why a report is wrong |
+
+The full text of each prompt is at the top of `baseline.py`.
+
 ## Results
 
 | Arm | Run | Hidden tests at first hand-off | Final | Rounds | Claude cost | Other usage | Time |

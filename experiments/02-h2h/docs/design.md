@@ -79,7 +79,7 @@ Orchestration frameworks such as ADK run agents that you define inside the frame
 
 ### Harness-agnostic
 
-The rest of the system never depends on which product a harness is. To join a team, a harness only has to run in a terminal and be able to call a tool. Consequences:
+The rest of the system never depends on which product a harness is. To join a team, a harness has to run in a terminal, have lifecycle hooks, and be able to call a tool. A small adapter per product hides the differences. Consequences:
 
 - The same harness can appear twice in a team, as two sessions with separate histories.
 - A harness with a different strength or budget can be added later as a new pool entry.
@@ -112,7 +112,7 @@ Each harness runs in its own session under a small keeper process that holds its
 
 ### Reporting tool
 
-A tool H2H gives every harness, as an `h2h` command or an MCP server. The harness calls it to fetch its tickets, report progress, attach proof, or say it is blocked. This is how status reaches H2H; the terminal is never parsed.
+A tool H2H gives every harness, as an `h2h` command or an MCP server. The harness calls it to fetch its tickets, attach proof, or say it is blocked. The session's state (working, waiting, idle) comes from the harness's own hooks, which do not depend on the model remembering to report. The terminal is never parsed.
 
 ### Harness pool
 
@@ -147,7 +147,8 @@ Side-by-side status of every session, from the ticket store and the keepers' sta
 | Direction | Channel |
 |---|---|
 | Work into the harness | The prompt at session start, and occasionally text typed into its terminal |
-| Status out of the harness | The reporting tool |
+| State out of the harness | The harness's own hooks |
+| Content out of the harness | The reporting tool |
 | People | The session's terminal |
 
 ### Remote harnesses
@@ -184,6 +185,7 @@ At any point the user can open either session's terminal to watch or step in. Th
 
 - **Opacity:** H2H knows what a harness reports and what its terminal shows. It cannot cap what the harness does internally beyond stopping the session.
 - **Lowest common denominator:** only features every harness supports can be part of the shared contract.
-- **Reporting depends on the harness.** A harness that forgets to call the reporting tool looks idle. Its instructions and the round limits have to account for that.
+- **Reporting depends on the harness.** State comes from hooks, but proof and summaries still depend on the harness calling the reporting tool. In the validation spikes all three harnesses did so every time, on a small sample.
+- **Hooks are a requirement.** A harness without lifecycle hooks cannot be supervised this way.
 - **Persistence:** an owner that holds a domain for weeks needs memory beyond one session, and each harness handles that differently.
 - **Boundaries:** when one domain needs a change in another, the owners need an agreed interface for requesting it.

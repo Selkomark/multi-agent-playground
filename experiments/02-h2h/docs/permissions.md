@@ -51,7 +51,7 @@ Each harness has its own permission settings: allow and deny lists for commands,
 A request that the native rules do not settle is sent to H2H by the harness's own extension point: a hook that runs before a tool is used, or a tool the harness calls to ask for permission. H2H answers allow or deny from its policy, in code, with no model call.
 
 - **Why:** policy can use what only H2H knows, such as the ticket, the domain's paths, the budget left and the risk level of the ticket type.
-- **Limit:** depends on each harness having such an extension point. This is the main thing to validate before a build.
+- **Limit:** depends on each harness having such an extension point. Claude Code, Copilot CLI and Codex CLI all have one; see [Validation](#validation).
 
 ### 3. Escalation to the user
 
@@ -85,10 +85,35 @@ Automatic approval raises the cost of a wrong rule, so each session also needs a
 
 The broader the automatic approvals, the stronger the containment has to be. A session with no sandbox should run with narrow rules and ask often.
 
+## Validation
+
+Layers 2 and 3 were tested on Claude Code, Copilot CLI and Codex CLI; the details are in [findings.md](findings.md).
+
+| Tested | Result |
+|---|---|
+| A hook answers "allow" and the action runs with no prompt | Works on all three |
+| A hook answers "deny" with a message, and the model acts on the message | Works on all three |
+| A request with no rule waits for the user's answer, then runs or is refused | Works on all three, for a five-second wait |
+
+What the tests showed about each harness:
+
+| Harness | Permission hook | Note |
+|---|---|---|
+| Claude Code | `PermissionRequest`, only when it is about to ask | Hooks can be passed on the command line |
+| Copilot CLI | `permissionRequest`, on every tool call | The policy is consulted even for actions its own rules allow |
+| Codex CLI | `PermissionRequest`, only when the model asks to leave the sandbox | Enforces by sandbox. Its instructions must say to request approval when the sandbox blocks a command, or the model reports the failure and stops |
+
+Consequences for the design:
+
+- **Waiting for permission is H2H's own state.** With the hook in place, a harness never shows a prompt. The wait is a request in H2H's queue.
+- **Each adapter writes standing instructions** for its harness: follow instructions in a refusal, and for Codex, ask for approval when blocked.
+- **Deny messages are instructions.** They should state the next step plainly, because the model does what the message says.
+
 ## Not verified
 
-- Whether every target harness has a hook or permission tool that can answer in code. Claude Code documents both. Copilot's command-line flags cover the first layer, and its support for the second is not checked.
-- Whether generated native rules behave the same in a harness's interactive mode as in its non-interactive mode.
-- Whether a waiting harness can be told "denied, do this instead" in a way it acts on.
-
-These are the subject of the permission validation in [`../validations/`](../validations/README.md).
+- **A long wait.** Hooks have time limits: 600 seconds by default on Claude Code and Codex, 30 on Copilot. A person may take hours. The likely design is to deny with "waiting for approval", park the ticket, and resume the session when the answer arrives.
+- **Generated native rules** (layer 1), and how they combine with the hook.
+- **Tools other than the shell:** file edits, web access and MCP tools.
+- **Sub-agents** started by a harness, and non-interactive mode.
+- **A hook that fails.** The harnesses differ on whether that allows or denies.
+- **Containment.** An approved Codex command runs outside its sandbox, and nothing here limits what an approved action can reach.

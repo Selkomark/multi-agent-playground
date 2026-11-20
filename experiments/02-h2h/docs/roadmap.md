@@ -7,7 +7,8 @@ Nothing here is scheduled. This is the order the design suggests, and the questi
 Two things come first:
 
 - **Try the existing tools.** Use Gas Town and CLI Agent Orchestrator for long enough to decide whether to build H2H or to build on one of them. See [prior-art.md](prior-art.md).
-- **Validate the riskiest assumptions.** Three short spikes under [`../validations/`](../validations/README.md): detecting session state, answering permission requests by policy, and a baseline against one harness with sub-agents. A failed spike changes the design before stage 1. See [risks.md](risks.md).
+- **Validate the riskiest assumptions.** Done on 2026-11-20, as three short spikes under [`../validations/`](../validations/README.md): detecting session state, answering permission requests by policy, and a baseline against one harness with sub-agents. None invalidated the design, and each changed part of it. See [findings.md](findings.md).
+- **Repeat the baseline properly.** The baseline used one easy task and two or three runs per setup. Before relying on it, run a task hard enough for the builder to get wrong, at least five times per setup, with a tester of each product reviewing the same builder output.
 
 ## Stages
 
@@ -17,7 +18,8 @@ Each stage gives a baseline for judging the next.
 |---|---|---|
 | 1. One session | The `h2h` binary, a keeper running one harness in a terminal with its own workspace, plus list, logs and attach | Whether a harness can be supervised, watched and entered |
 | 2. Crash recovery | State on disk and rejoin on restart | Whether sessions survive H2H stopping, and what is lost |
-| 3. Reporting tool | The tool a harness calls to fetch work and report status and proof, tried on a task that needs a harness (change code in a repo and run the tests) | Whether harnesses report reliably without the terminal being parsed |
+| 3. Hooks and reporting tool | A harness adapter that configures hooks for state, plus the tool a harness calls to fetch work and attach proof, tried on a task that needs a harness (change code in a repo and run the tests) | Whether state from hooks and content from reports hold up on real work. The spikes showed both work on trivial tasks |
+| 3a. Permission policy | The policy hook, the request queue and escalation to the user, including a wait longer than a hook's time limit | Whether a session can run unattended without ever showing a prompt |
 | 4. Build and test loop | Two sessions of the same harness as builder and tester, with the commit handoff and a test environment | Whether separate sessions, isolation and the typed result contract work |
 | 5. Core | The ticket store in kanban mode, approval rules, proof, budgets, path ownership and the merge queue, with a simple scripted assigner. Usage is recorded per ticket from here on | Whether tickets and proof make "done" trustworthy, and what a ticket costs |
 | 6. Second harness product | The builder or tester swapped for a different product | Whether the system really is harness-agnostic |
@@ -47,13 +49,16 @@ The useful question is "what breaks at the boundary", more than "is the output b
 ## Open questions
 
 - **Gaps from the design review.** Session state, shared usage limits, context lifetime, shared machine resources, proof verification, instructions between harnesses, the user as bottleneck, hung sessions and harness updates. Listed with proposed directions in [risks.md](risks.md).
-- **Permission hooks.** Whether each harness can have a permission request answered in code. See [permissions.md](permissions.md).
+- **Long permission waits.** What happens when the user takes longer than a hook's time limit, and how the session resumes once the answer arrives. Answering in code itself is confirmed; see [permissions.md](permissions.md).
+- **Workspace trust.** How H2H makes a workspace trusted for each harness without the user answering a dialog per session, and what the user approves once at setup.
+- **Standing instructions.** What each adapter must tell its harness, and whether harnesses keep following it over a long session.
 - **Containment.** Which sandbox or container gives each session a boundary, and what it costs in setup.
 - **Target harnesses.** Claude Code, Copilot CLI and Codex CLI, all of which run in a terminal session that the validation spikes could start and prompt. Gemini CLI is excluded: it no longer offers a personal login, so it cannot follow the "bring your own login" approach. Resume by session ID is still unverified for Copilot and Codex.
-- **Typing work into a terminal.** How reliably follow-up instructions can be delivered to a running harness this way, per product.
+- **Typing work into a terminal.** Worked on all three harnesses in the spikes, for short prompts between turns. Long prompts, and typing while the harness is busy, are untested.
 - **Session resume.** Which harnesses can resume by session ID, needed for take over and for recovery after a reboot. Claude Code can.
 - **Subscription logins.** Whether a personal subscription may be used for unattended runs, per provider.
-- **Budget.** How H2H measures what a harness spends, given that each product reports usage differently.
+- **Budget.** Each product reports usage in a different unit (dollars, tokens, AI credits). Whether budgets stay per harness in its own unit or are converted to one.
+- **Cross-product testing.** Whether a tester from a different product reliably finds more than a second session of the builder's product, as the baseline suggested.
 - **A2A for Go.** Whether an official A2A library for Go exists and is current. Believed so, not verified. Only matters for remote harnesses.
 - **Keeper pause.** How a keeper pauses a harness safely when the orchestrator is unreachable.
 - **Persistence.** How an owner keeps memory across sessions in a way that works for every harness.

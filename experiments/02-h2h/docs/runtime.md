@@ -65,19 +65,50 @@ One entry per session, written by its keeper, plus the ticket store (for example
 
 - **Session.** One running harness with its own history. H2H records the harness's own session ID so the session can be resumed later.
 - **Workspace.** Each session gets its own working copy, for example a git worktree, so two sessions never edit the same files. H2H creates it when the session starts and removes or archives it when the session ends.
+- **Trusted workspace.** A harness asks before working in a folder it has not been told to trust, and an unanswered question stalls the session before it starts. H2H therefore creates workspaces in a form each harness already trusts, or registers them as trusted, in a setup step the user approves once. What counts as trusted differs per harness; see [findings.md](findings.md).
 - **The same harness twice.** Two sessions of one product are two keepers with separate workspaces and histories.
 
 ## How H2H and a harness communicate
 
-Reading a harness's status off its terminal screen is fragile, so H2H never does that. The harness reports to H2H instead.
+Reading a harness's status off its terminal screen is fragile, so H2H never does that. The harness tells H2H instead, in two ways.
 
 | Direction | Channel |
 |---|---|
-| Work into the harness | The prompt when the session starts, and occasionally text typed into its terminal |
-| Status out of the harness | A reporting tool that H2H provides, as an `h2h` command or an MCP server. The harness calls it to say "ticket done, here is the proof" or "blocked, need a decision" |
+| Work into the harness | The prompt when the session starts, and text typed into its terminal |
+| State out of the harness | The harness's own hooks: session started, prompt accepted, tool started and finished, permission needed, turn finished, session ended. H2H configures them when it starts the session |
+| Content out of the harness | A reporting tool that H2H provides, as an `h2h` command or an MCP server. The harness calls it to say "ticket done, here is the proof" or "blocked, need a decision" |
 | People | The terminal, for watching and jumping in |
 
-The requirement for a harness to join a team is therefore small: it runs in a terminal and it can call a tool.
+Hooks fire whether or not the model remembers to report, so they carry the state. The reporting tool carries what only the model knows. The validation spikes confirmed both on Claude Code, Copilot CLI and Codex CLI; see [findings.md](findings.md).
+
+The requirement for a harness to join a team is: it runs in a terminal, it has lifecycle hooks, and it can call a tool.
+
+### Session states
+
+| State | Decided by |
+|---|---|
+| Working | A prompt or tool event from the harness's hooks |
+| Waiting for a permission answer | A permission request held by H2H; see [permissions.md](permissions.md) |
+| Idle | The turn-finished hook |
+| Hung | No hook event and no terminal activity for a set time while working. Only the presence of terminal bytes is used, never their content |
+| Exited | The process ending |
+
+Two cautions from the spikes:
+
+- **Idle is not done.** A harness can end its turn with a command still running in the background. A ticket is done on a report and verified proof, never on the turn ending.
+- **Exit is not the only end.** A harness run without a terminal can finish its work and stay alive. Every run has a time limit.
+
+### Harness adapters
+
+Hook names, where hooks are configured, command-line flags, the trust mechanism and the permission model all differ between harnesses. Each harness product has a small adapter that hides this from the rest of H2H:
+
+- How to start the harness, and with which flags.
+- How to configure its hooks, and how its event names map to the states above.
+- How to make a workspace trusted.
+- Standing instructions the harness needs, such as following instructions in a refusal.
+- How its usage is reported.
+
+An adapter has a conformance test, run when the harness version changes.
 
 ## Monitoring and jumping in
 

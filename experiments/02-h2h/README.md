@@ -2,7 +2,7 @@
 
 _Created 2026-11-19_
 
-**Status: design, with validation in progress.** The design is documented and nothing is built. Short spikes under [`validations/`](validations/README.md) test the riskiest assumptions before a build is planned.
+**Status: design, validated by three spikes.** The design is documented and H2H itself is not built. Three short spikes under [`validations/`](validations/README.md) tested the riskiest assumptions on Claude Code, Copilot CLI and Codex CLI. None invalidated the design.
 
 ## Purpose
 
@@ -31,7 +31,7 @@ Not built yet. The intended shape:
 - **Tool:** a single `h2h` binary, written in Go. It is a CLI first, and `h2h serve --port <n>` adds a web UI.
 - **Sessions:** each harness runs in its own terminal session and workspace under a small keeper process, so sessions survive a crash of H2H and can be rejoined.
 - **Visibility:** the user can list active harnesses, follow their logs, and jump into any session's terminal.
-- **Reporting:** harnesses report status and proof through a tool H2H provides. A2A is kept for harnesses on other machines.
+- **Reporting:** a session's state comes from the harness's own hooks, and harnesses report proof through a tool H2H provides. A2A is kept for harnesses on other machines.
 - **Core:** a ticket system with approval rules and budgets, enforced in code.
 - **Team:** a pool of harnesses, one owner per domain, optionally with one harness acting as coordinator.
 - **Planning:** kanban by default. An optional project manager adds estimation, sprints bounded by budget, and a retro.
@@ -46,7 +46,13 @@ Nothing of H2H itself to run yet. The validation spikes have their own instructi
 
 ## Results
 
-None yet. Details go in `docs/findings.md` once there are results.
+No results for H2H itself, which is not built. The validation spikes gave these, on a small sample:
+
+- **Session state:** the state of a harness (working, waiting for input, idle, hung, exited) can be read from its own hooks on all three harnesses, without reading its screen. Starting unattended needs a folder-trust step.
+- **Permissions:** a permission request can be answered in code on all three harnesses: allow, deny with instructions the model then follows, or hold for the user's answer. No prompt reached the screen.
+- **Baseline:** on one small task, a builder and a tester in separate sessions cost about the same as one harness using sub-agents. Testers from a different product found two real defects that a same-product tester and 75 hidden tests missed.
+
+Details, including what each test did, are in [docs/findings.md](docs/findings.md).
 
 ## Documentation
 
@@ -62,6 +68,7 @@ Read in this order:
 - [docs/authentication.md](docs/authentication.md): the four authentication problems and how to approach each
 - [docs/prior-art.md](docs/prior-art.md): existing projects and where H2H intends to differ
 - [docs/risks.md](docs/risks.md): gaps found in the design review, with proposed directions
+- [docs/findings.md](docs/findings.md): what the validation spikes tested, their results, and what they change in the design
 - [docs/roadmap.md](docs/roadmap.md): build stages and open questions
 
 Validation spikes:

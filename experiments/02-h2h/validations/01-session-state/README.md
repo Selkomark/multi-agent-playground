@@ -31,6 +31,18 @@ Three scenarios per harness:
 | `permission` | The harness is asked to run a command that no rule allows | Waiting for input, and that it stays that way |
 | `hung` | The harness runs a silent one-minute command, then the keeper freezes the process | Still working during the command, hung once frozen, working again when resumed |
 
+The checks each scenario makes:
+
+| Scenario | Checks |
+|---|---|
+| `complete` | Turn end is signalled by a hook. The harness called the reporting tool. The file exists. State is idle after the turn. A prompt typed into the terminal is accepted. The second turn finished and reported. The file was changed. The harness exits on `/exit`. Process exit is observed |
+| `permission` | A permission prompt is detected. It is detected within 10 seconds of the tool call. State stays "waiting" for 12 seconds while unanswered. The file was not created |
+| `hung` | The state stays "working" during 12 seconds of a silent command. A frozen process is detected as hung. The state returns to "working" when the process resumes |
+
+The prompts, in short: `complete` asks for a file `hello.txt` containing "hi" and then the command `h2h-report done first-task`. `permission` asks for `touch needs-approval.txt`. `hung` asks for a program on the PATH that sleeps for a minute and prints nothing. The full text is in `keeper.py`.
+
+Thresholds: a session is "hung" after 15 seconds with no hook event and no terminal bytes while working, and "stalled" after 12 seconds of silence before its first hook event.
+
 ## Results
 
 | Scenario | Claude Code | Copilot CLI | Codex CLI |

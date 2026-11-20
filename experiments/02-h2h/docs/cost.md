@@ -85,6 +85,18 @@ The config sets the model and effort level per domain and per phase of work: inv
 
 Budgets exist per harness and, in managed mode, per sprint. See [planning.md](planning.md).
 
+Each harness reports usage in its own unit: Claude Code in dollars and tokens, Codex in tokens, Copilot in AI credits. A budget is therefore kept per harness in that harness's unit, unless the config gives a conversion.
+
+## What the baseline validation showed
+
+One small task was done by one harness using sub-agents and by a builder and a tester in separate sessions. Details are in [findings.md](findings.md).
+
+- **The handoff itself was not expensive.** Two Claude sessions cost $0.023 to $0.025, against $0.028 to $0.048 for one session with sub-agents.
+- **Testing cost as much as building**, or up to twice as much.
+- **A rework round roughly doubled the builder's cost.** Rework is recorded as a cost of its own per ticket.
+
+This was two sessions on an easy task. The cost reported for existing tools comes from coordinating many agents, which was not tested.
+
 ## Data recorded from the first version
 
 Every ticket records phase, model, effort, tokens used, rounds, and whether the work was approved or rejected. This is cheap to record and impossible to reconstruct later. It is what the retro report, the budget choices and any later automation depend on.

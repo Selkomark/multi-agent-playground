@@ -1,6 +1,6 @@
 # Risks and gaps: H2H
 
-What the design does not yet answer, found in a review before any build. Each entry says what is missing and the direction proposed. None of the directions is tested.
+What the design does not yet answer, found in a review before any build. Each entry says what is missing and the direction proposed. Three were then tested; see the last section. The other directions are untested.
 
 Permissions were the largest gap and have their own document: [permissions.md](permissions.md).
 
@@ -31,8 +31,12 @@ Permissions were the largest gap and have their own document: [permissions.md](p
 
 ## Validation before a build
 
-Three of these can invalidate the design, so they are tested first, as short spikes under [`../validations/`](../validations/README.md):
+Three of these could invalidate the design, so they were tested first, as short spikes under [`../validations/`](../validations/README.md). The results are in [findings.md](findings.md).
 
-1. **Session state:** drive two harness products in a pseudo-terminal and detect their state without reading the screen.
-2. **Permissions:** answer a permission request by policy, in code, in each harness.
-3. **Baseline:** run one task with two harness sessions and with one harness using sub-agents, and compare cost and rework.
+| Gap | Spike | Outcome |
+|---|---|---|
+| Session state | 01 | Answered. Hooks give the state on Claude Code, Copilot and Codex. A new gap appeared: folder trust stalls an unattended start |
+| Permissions | 02 | Answered for short waits. A hook can allow, deny with instructions, and hold a request for the user. Long waits are untested |
+| No baseline | 03 | Partly answered. No cost penalty for two sessions on a small task, on a small sample. A harder task and more runs are needed |
+
+Every other gap in this document is still open.

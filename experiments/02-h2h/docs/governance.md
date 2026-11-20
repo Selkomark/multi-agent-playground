@@ -54,6 +54,12 @@ If another harness or a script can re-run the check, the human only judges wheth
 
 Who runs the check is not settled. The proposed answer is that H2H runs it, in a clean checkout of the reported commit; see [risks.md](risks.md).
 
+Checks run by H2H do not replace a reviewer. In the baseline validation, code that passed 75 hidden test cases still had two real defects, each found by a tester harness from a different product; see [findings.md](findings.md).
+
+### Who tests
+
+The tester of a piece of work should be a different harness product from its builder where the team has one. In the baseline validation, testers from another product found defects in two of four runs, and a second session of the builder's own product found none in two. The sample is small, so this is a default to measure, not a rule.
+
 ## Approval rules
 
 A human on every ticket becomes the bottleneck. Approval is therefore set by risk:
