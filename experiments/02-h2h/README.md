@@ -6,7 +6,7 @@ _Created 2026-11-19_
 
 ## Purpose
 
-Find out whether complete agent harnesses (Claude Code, Copilot, Gemini and others) can work as a team, where each harness owns a domain of responsibility and reports status, instead of acting as a worker that answers one task and forgets.
+Find out whether complete agent harnesses (Claude Code, Copilot, Codex and others) can work as a team, where each harness owns a domain of responsibility and reports status, instead of acting as a worker that answers one task and forgets.
 
 A harness is a full agent product: a model plus its own loop, tools, permissions and ability to spawn sub-agents. Experiment 01 orchestrates small agents defined in one framework. H2H orchestrates whole harnesses that are opaque to each other.
 

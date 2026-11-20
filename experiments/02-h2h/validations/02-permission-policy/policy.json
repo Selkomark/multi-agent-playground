@@ -1,0 +1,13 @@
+{
+  "rules": [
+    {
+      "decision": "deny",
+      "command": "touch denied*",
+      "message": "Denied by H2H policy: that file name is reserved. Create a file named fallback.txt instead, with: touch fallback.txt"
+    },
+    {"decision": "allow", "command": "touch allowed*"},
+    {"decision": "allow", "command": "touch fallback*"}
+  ],
+  "default": "ask_user",
+  "ask_user_wait_seconds": 60
+}

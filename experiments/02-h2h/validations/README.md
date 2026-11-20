@@ -8,15 +8,20 @@ A spike is throwaway code that answers one question. It is not the start of H2H,
 
 | # | Spike | Question | Status |
 |---|---|---|---|
-| 01 | Session state | Can H2H tell whether a harness is working, waiting for input, finished or hung, without reading its screen? | Not run |
-| 02 | Permission policy | Can a harness's permission request be answered in code, by policy, with allow, deny and "ask the user"? | Not run |
-| 03 | Baseline | On one task, how do two harness sessions with a ticket handoff compare with one harness using its own sub-agents, in cost and rework? | Not run |
+| 01 | [Session state](01-session-state/README.md) | Can H2H tell whether a harness is working, waiting for input, finished or hung, without reading its screen? | **Passed** for Claude Code, Copilot and Codex. Unattended start needs a trust step |
+| 02 | [Permission policy](02-permission-policy/README.md) | Can a harness's permission request be answered in code, by policy, with allow, deny and "ask the user"? | **Passed** for Claude Code, Copilot and Codex. Long waits are untested |
+| 03 | [Baseline](03-baseline/README.md) | On one task, how do two harness sessions with a ticket handoff compare with one harness using its own sub-agents, in cost and rework? | In progress |
 
-Each spike gets its own directory (`01-session-state/` and so on) with a README that states the question, the method, how to run it and the result.
+Each spike has its own directory with a README that states the question, the method, how to run it and the result. Run output goes to `runs/` inside each spike and is not committed.
 
 ## Harnesses under test
 
-The harness products installed on the test machine: Claude Code and GitHub Copilot CLI. Others (Gemini, Codex) are not installed and are not covered.
+| Harness | Version | Covered |
+|---|---|---|
+| Claude Code | 2.1.329 | Yes |
+| GitHub Copilot CLI | 1.0.114 | Yes |
+| Codex CLI | 0.171.0 | Yes |
+| Gemini CLI | 0.70.0 | No. Excluded from the project: it no longer offers a personal login |
 
 ## What a result changes
 

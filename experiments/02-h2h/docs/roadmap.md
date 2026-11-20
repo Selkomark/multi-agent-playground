@@ -49,7 +49,7 @@ The useful question is "what breaks at the boundary", more than "is the output b
 - **Gaps from the design review.** Session state, shared usage limits, context lifetime, shared machine resources, proof verification, instructions between harnesses, the user as bottleneck, hung sessions and harness updates. Listed with proposed directions in [risks.md](risks.md).
 - **Permission hooks.** Whether each harness can have a permission request answered in code. See [permissions.md](permissions.md).
 - **Containment.** Which sandbox or container gives each session a boundary, and what it costs in setup.
-- **Copilot and Gemini.** Whether each runs in a terminal session that H2H can start, prompt and resume. Not verified.
+- **Target harnesses.** Claude Code, Copilot CLI and Codex CLI, all of which run in a terminal session that the validation spikes could start and prompt. Gemini CLI is excluded: it no longer offers a personal login, so it cannot follow the "bring your own login" approach. Resume by session ID is still unverified for Copilot and Codex.
 - **Typing work into a terminal.** How reliably follow-up instructions can be delivered to a running harness this way, per product.
 - **Session resume.** Which harnesses can resume by session ID, needed for take over and for recovery after a reboot. Claude Code can.
 - **Subscription logins.** Whether a personal subscription may be used for unattended runs, per provider.

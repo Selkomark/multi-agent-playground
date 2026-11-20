@@ -43,7 +43,9 @@ Details to respect:
 
 ### Other harnesses
 
-The unattended options for Copilot and Gemini have not been checked. Whether Copilot can be driven without a human in the editor is an open question that decides if it can join a team at all.
+The unattended options for Copilot and Codex have not been checked. Both ran in the validation spikes on the user's existing login, started from a terminal with nobody in an editor.
+
+Gemini CLI is excluded from the project. It no longer offers a personal login, which leaves only an API key or a cloud project, and that does not fit "bring your own login".
 
 ## 2. H2H to harness, and user to H2H
 
