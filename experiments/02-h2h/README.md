@@ -22,15 +22,22 @@ A team of harnesses that own domains will handle multi-part projects better than
 
 We expect the cost to be coordination overhead. H2H should lose to a single agent on small tasks, and the experiment should show where that line is.
 
+Similar tools already exist and are known to be expensive to run. H2H only earns its place if its design keeps that cost down; see [docs/cost.md](docs/cost.md) and [docs/prior-art.md](docs/prior-art.md).
+
 ## Setup
 
 Not built yet. The intended shape:
 
-- **Protocol:** A2A between harnesses, with each harness behind a wrapper that exposes it as an A2A service.
+- **Tool:** a single `h2h` binary, written in Go. It is a CLI first, and `h2h serve --port <n>` adds a web UI.
+- **Sessions:** each harness runs in its own terminal session and workspace under a small keeper process, so sessions survive a crash of H2H and can be rejoined.
+- **Visibility:** the user can list active harnesses, follow their logs, and jump into any session's terminal.
+- **Reporting:** harnesses report status and proof through a tool H2H provides. A2A is kept for harnesses on other machines.
 - **Core:** a ticket system with approval rules and budgets, enforced in code.
-- **Team:** a pool of harnesses, each assigned a domain, optionally with one harness acting as coordinator.
+- **Team:** a pool of harnesses, one owner per domain, optionally with one harness acting as coordinator.
+- **Planning:** kanban by default. An optional project manager adds estimation, sprints bounded by budget, and a retro.
+- **Cost:** coordination is done by code first, small agents second and a harness last.
 - **Human:** approves, rejects with a reason, and unblocks decisions through the ticket system.
-- **Configuration:** declared as code, with a CLI and a UI as views onto it.
+- **Configuration:** declared as code, with the CLI and the UI as views onto it.
 
 ## Running
 
@@ -45,7 +52,11 @@ None yet. Details go in `docs/findings.md` once there are results.
 Read in this order:
 
 - [docs/design.md](docs/design.md): architecture, roles and the communication model
-- [docs/governance.md](docs/governance.md): tickets, proof of work, approvals, autonomy and intended use
+- [docs/runtime.md](docs/runtime.md): sessions, keepers, monitoring, jumping in, crash recovery and the choice of Go
+- [docs/governance.md](docs/governance.md): tickets, proof of work, approvals, autonomy, rework prevention and intended use
+- [docs/planning.md](docs/planning.md): kanban and managed modes, the project manager, estimation, sprints and the retro
+- [docs/cost.md](docs/cost.md): where cost comes from and how the design limits it
 - [docs/configuration.md](docs/configuration.md): config as code, the CLI and the UI
 - [docs/authentication.md](docs/authentication.md): the four authentication problems and how to approach each
+- [docs/prior-art.md](docs/prior-art.md): existing projects and where H2H intends to differ
 - [docs/roadmap.md](docs/roadmap.md): build stages and open questions
