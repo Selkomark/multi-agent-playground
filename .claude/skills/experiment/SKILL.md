@@ -20,6 +20,8 @@ experiments/
         └── findings.md        # add once there are results
 ```
 
+An experiment may also have `validations/` beside `docs/`, for short spikes that test an assumption before a build: a `README.md` listing every spike, and one numbered directory per spike (`01-<name>/`) with its own `README.md`.
+
 ## Rules
 
 1. **Every experiment has a README.md and a docs/ directory.** No exceptions, even for throwaway experiments.
@@ -29,6 +31,7 @@ experiments/
 5. **Links flow downward**: root README -> experiment README -> experiment docs. Do not link from the root README directly into an experiment's `docs/`.
 6. **Naming**: lowercase kebab-case, numeric prefix. Pick the next unused number by listing `experiments/`.
 7. **Diagrams are Mermaid, never ASCII art.** Follow the `mermaid-diagrams` skill for their design. Directory trees in a plain code block are not diagrams.
+8. **Validations are linked too.** If an experiment has `validations/`, its README links to `validations/README.md`, which links to every spike.
 
 ## Commands
 

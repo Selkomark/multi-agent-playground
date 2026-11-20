@@ -7,6 +7,7 @@
 - Every experiment contains:
   - `README.md`: purpose, hypothesis, how to run, results summary, and a "Documentation" section linking to every file in its `docs/` directory.
   - `docs/`: experiment-specific documentation. At minimum a `design.md`. Add `findings.md` once there are results.
+- An experiment may also contain `validations/`: short spikes that test an assumption before a build. It has a `README.md` listing every spike, and one numbered directory per spike (`01-<name>/`) with its own `README.md`. The experiment README links to `validations/README.md`.
 
 ## Documentation chain
 

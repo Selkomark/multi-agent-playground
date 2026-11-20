@@ -2,7 +2,7 @@
 
 _Created 2026-11-19_
 
-**Status: design only.** This experiment currently holds documentation. Nothing is built, and the design is expected to change before any build is planned.
+**Status: design, with validation in progress.** The design is documented and nothing is built. Short spikes under [`validations/`](validations/README.md) test the riskiest assumptions before a build is planned.
 
 ## Purpose
 
@@ -36,12 +36,13 @@ Not built yet. The intended shape:
 - **Team:** a pool of harnesses, one owner per domain, optionally with one harness acting as coordinator.
 - **Planning:** kanban by default. An optional project manager adds estimation, sprints bounded by budget, and a retro.
 - **Cost:** coordination is done by code first, small agents second and a harness last.
+- **Permissions:** rules declared in config answer a harness's permission requests on the user's behalf. Anything not covered goes to the user.
 - **Human:** approves, rejects with a reason, and unblocks decisions through the ticket system.
 - **Configuration:** declared as code, with the CLI and the UI as views onto it.
 
 ## Running
 
-Nothing to run yet.
+Nothing of H2H itself to run yet. The validation spikes have their own instructions in [validations/README.md](validations/README.md).
 
 ## Results
 
@@ -56,7 +57,13 @@ Read in this order:
 - [docs/governance.md](docs/governance.md): tickets, proof of work, approvals, autonomy, rework prevention and intended use
 - [docs/planning.md](docs/planning.md): kanban and managed modes, the project manager, estimation, sprints and the retro
 - [docs/cost.md](docs/cost.md): where cost comes from and how the design limits it
+- [docs/permissions.md](docs/permissions.md): how H2H answers a harness's permission requests on the user's behalf
 - [docs/configuration.md](docs/configuration.md): config as code, the CLI and the UI
 - [docs/authentication.md](docs/authentication.md): the four authentication problems and how to approach each
 - [docs/prior-art.md](docs/prior-art.md): existing projects and where H2H intends to differ
+- [docs/risks.md](docs/risks.md): gaps found in the design review, with proposed directions
 - [docs/roadmap.md](docs/roadmap.md): build stages and open questions
+
+Validation spikes:
+
+- [validations/README.md](validations/README.md): the assumptions being tested, how to run each spike, and results

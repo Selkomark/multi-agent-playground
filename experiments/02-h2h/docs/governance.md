@@ -52,6 +52,8 @@ A harness saying "done" is a claim. Proof is an artifact that someone else can c
 
 If another harness or a script can re-run the check, the human only judges whether the work is right, not whether it happened. What counts as proof for each kind of work is declared in the config.
 
+Who runs the check is not settled. The proposed answer is that H2H runs it, in a clean checkout of the reported commit; see [risks.md](risks.md).
+
 ## Approval rules
 
 A human on every ticket becomes the bottleneck. Approval is therefore set by risk:
@@ -70,10 +72,11 @@ A human on every ticket becomes the bottleneck. Approval is therefore set by ris
 
 ## Autonomy
 
-Autonomy is the main risk of H2H. It is controlled in four ways:
+Autonomy is the main risk of H2H. It is controlled in five ways:
 
 - **Per ticket type.** The approval table above is the autonomy setting. It can be widened as trust builds.
 - **Scoped access.** Each owner holds only the credentials and repository access its domain needs, so a wrong decision is contained.
+- **Permission rules.** What an owner may do without asking is declared in config and answered by H2H on the user's behalf; see [permissions.md](permissions.md).
 - **Budgets.** Each harness has a budget, enforced by H2H and backed by a pause in the keeper if H2H is unreachable.
 - **Round limits.** A build-and-test loop stops after a set number of rounds and escalates to the human.
 

@@ -4,7 +4,10 @@ Nothing here is scheduled. This is the order the design suggests, and the questi
 
 ## Before any build
 
-Use Gas Town and CLI Agent Orchestrator for long enough to decide whether to build H2H or to build on one of them. See [prior-art.md](prior-art.md).
+Two things come first:
+
+- **Try the existing tools.** Use Gas Town and CLI Agent Orchestrator for long enough to decide whether to build H2H or to build on one of them. See [prior-art.md](prior-art.md).
+- **Validate the riskiest assumptions.** Three short spikes under [`../validations/`](../validations/README.md): detecting session state, answering permission requests by policy, and a baseline against one harness with sub-agents. A failed spike changes the design before stage 1. See [risks.md](risks.md).
 
 ## Stages
 
@@ -43,6 +46,9 @@ The useful question is "what breaks at the boundary", more than "is the output b
 
 ## Open questions
 
+- **Gaps from the design review.** Session state, shared usage limits, context lifetime, shared machine resources, proof verification, instructions between harnesses, the user as bottleneck, hung sessions and harness updates. Listed with proposed directions in [risks.md](risks.md).
+- **Permission hooks.** Whether each harness can have a permission request answered in code. See [permissions.md](permissions.md).
+- **Containment.** Which sandbox or container gives each session a boundary, and what it costs in setup.
 - **Copilot and Gemini.** Whether each runs in a terminal session that H2H can start, prompt and resume. Not verified.
 - **Typing work into a terminal.** How reliably follow-up instructions can be delivered to a running harness this way, per product.
 - **Session resume.** Which harnesses can resume by session ID, needed for take over and for recovery after a reboot. Claude Code can.

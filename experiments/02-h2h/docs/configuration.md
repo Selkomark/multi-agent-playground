@@ -20,6 +20,7 @@ Declared config and runtime state are kept apart. A config file that fills up wi
 |---|---|
 | The harness pool: how to start each harness, and which one owns which domain | Tickets and their status |
 | Permissions and credentials each owner may use, by reference | Proof attached to tickets |
+| Permission rules per owner: what is allowed, denied, or asked; see [permissions.md](permissions.md) | Permission requests and the answers given |
 | Budgets | Approvals and rejections |
 | Approval rules by ticket type | Session history |
 | What counts as proof for each kind of work | |
