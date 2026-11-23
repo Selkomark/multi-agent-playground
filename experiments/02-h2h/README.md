@@ -24,6 +24,8 @@ We expect the cost to be coordination overhead. H2H should lose to a single agen
 
 Similar tools already exist and are known to be expensive to run. H2H only earns its place if its design keeps that cost down; see [docs/cost.md](docs/cost.md) and [docs/prior-art.md](docs/prior-art.md).
 
+H2H is a clean-room build: it may share ideas and architecture with those tools, but none of their code is copied into it, and it is not an extension of any of them. Its dependencies are limited to permissively licensed libraries, so a company can adopt it without licence problems; see [docs/licensing.md](docs/licensing.md).
+
 ## Setup
 
 Not built yet. The intended shape:
@@ -66,7 +68,8 @@ Read in this order:
 - [docs/permissions.md](docs/permissions.md): how H2H answers a harness's permission requests on the user's behalf
 - [docs/configuration.md](docs/configuration.md): config as code, the CLI and the UI
 - [docs/authentication.md](docs/authentication.md): the four authentication problems and how to approach each
-- [docs/prior-art.md](docs/prior-art.md): existing projects and where H2H intends to differ
+- [docs/prior-art.md](docs/prior-art.md): existing projects, where H2H intends to differ, and the clean-room rule
+- [docs/licensing.md](docs/licensing.md): which dependency licences are allowed, and how that is checked
 - [docs/risks.md](docs/risks.md): gaps found in the design review, with proposed directions
 - [docs/findings.md](docs/findings.md): what the validation spikes tested, their results, and what they change in the design
 - [docs/roadmap.md](docs/roadmap.md): build stages and open questions

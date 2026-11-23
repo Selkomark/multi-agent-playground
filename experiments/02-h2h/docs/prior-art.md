@@ -1,6 +1,6 @@
 # Prior art: H2H
 
-The idea is not new. Several open-source projects orchestrate multiple coding harnesses, and a few combine most of the pieces H2H uses. This document records what exists and where H2H intends to differ.
+The idea is not new. Several open-source projects orchestrate multiple coding harnesses, and a few combine most of the pieces H2H uses. This document records what exists and where H2H intends to differ. H2H takes ideas from them and no code; see [Clean-room rule](#clean-room-rule).
 
 Found by web search on 2026-11-20, mostly from secondary write-ups. None of these tools has been used or read in source as part of this experiment, so every detail needs confirming against the project itself.
 
@@ -33,12 +33,24 @@ These did not appear in the search results. They were not searched for one by on
 - **Optional managed planning** with estimation, untimed sprints bounded by budget, and a computed retro.
 - **Sessions that survive without tmux,** inside a single binary.
 
-## Before building
+## Clean-room rule
 
-Spend time using Gas Town and CLI Agent Orchestrator. That decides between two paths:
+H2H is written from scratch. It is not an extension, a fork or a wrapper of any project listed here, and none of their code is copied into it. The reason is copyright: code lifted from another project brings that project's licence and ownership with it, and a company auditing H2H should find nothing of that kind.
 
-- **Build H2H** around the differences above.
-- **Build on an existing project** and add what is missing. Gas Town is already Go with tickets and sessions.
+| Allowed | Not allowed |
+|---|---|
+| Using the same architecture or approach as an existing tool, where it fits | Copying their source code into H2H, in any amount |
+| Reading their documentation, write-ups and source to understand how they work | Pasting their code and editing it to fit, or translating it line by line into another language |
+| Reimplementing a part of their solution in our own code, written for H2H | Taking over their files as they are: configuration, schemas, prompts or tests |
+| Using them as a user, to see how an approach works in practice | Depending on them as a library, a subprocess or a required companion tool |
+
+Ideas and architecture are free to use. Code is not. Where an idea is taken from one of these projects, the design document says so and names the project.
+
+The rules for third-party libraries are in [licensing.md](licensing.md).
+
+## Using the existing tools
+
+Trying Gas Town and CLI Agent Orchestrator as a user is still worthwhile, to learn what works and what hurts in practice. It no longer decides whether to build: H2H is built either way.
 
 ## Sources
 

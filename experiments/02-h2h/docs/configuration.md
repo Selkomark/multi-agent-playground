@@ -19,6 +19,7 @@ Declared config and runtime state are kept apart. A config file that fills up wi
 | Declared in config | Runtime state, not in config |
 |---|---|
 | The harness pool: how to start each harness, and which one owns which domain | Tickets and their status |
+| Per-harness settings, where a harness must be treated differently: workspace kind, how trust is obtained, how hooks are delivered; see [runtime.md](runtime.md) | Which harnesses have passed the trust check |
 | Permissions and credentials each owner may use, by reference | Proof attached to tickets |
 | Permission rules per owner: what is allowed, denied, or asked; see [permissions.md](permissions.md) | Permission requests and the answers given |
 | Budgets | Approvals and rejections |

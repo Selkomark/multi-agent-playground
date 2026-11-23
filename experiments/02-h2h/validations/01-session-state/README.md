@@ -73,21 +73,21 @@ How each state is recognised:
 
 ### What did not work out of the box
 
-- **Folder trust blocks an unattended start.** Claude Code and Copilot show a dialog before doing anything in a folder they have not been told to trust, and no hook fires until it is answered. Codex started without one here because this repository is already marked trusted in its config; an untrusted folder was not tested with Codex.
+- **Folder trust blocks an unattended start.** Claude Code and Copilot show a dialog before doing anything in a folder they have not been told to trust, and no hook fires until it is answered. Codex started without one inside this repository, which is already marked trusted in its config, and asked in a new repository in the temp directory. Passing the trust setting as a per-launch config override did not remove Codex's dialog.
 
   | Workspace | Claude Code | Copilot CLI | Codex CLI |
   |---|---|---|---|
   | Plain folder inside a repository the user already trusts | Starts | Asks | Starts |
-  | Git worktree of a trusted repository | Starts | Not tested | Not tested |
+  | Git worktree of a trusted repository | Starts | Asks, as for any folder in this untrusted repository | Starts |
   | New git repository inside a trusted folder | Asks | Asks | Not tested |
-  | New repository in the temp directory | Asks | Not tested | Not tested |
+  | New repository in the temp directory | Asks | Not tested | Asks |
   | Any folder that declares hooks in its own settings | Asks, even inside a trusted repository | Asks | Starts, but each hook must be trusted separately |
 
   Note that this repository was trusted by Claude Code and Codex before the spike, and not by Copilot, so the Copilot column shows an untrusted repository throughout.
 
   Claude Code's dialog defaults to "No, exit", and Copilot's defaults to "Yes" for this session. The spike got past Copilot's with one Enter sent blind 15 seconds after start (`--accept-trust`). The same key would make Claude Code exit.
 
-- **Hooks are configured differently.** Claude Code takes them on the command line (`--settings`), so nothing executable has to be written into the workspace. Copilot only reads them from the repository root (`.github/hooks/*.json`, or Claude-style in `.claude/settings.json`). In a subfolder of a larger repository, Copilot ignored them. Codex reads `.codex/hooks.json` from the workspace, in the same format as Claude Code, and refuses to run a hook the user has not reviewed unless it is started with `--dangerously-bypass-hook-trust`, which the spike used.
+- **Hooks are configured differently.** Claude Code takes them on the command line (`--settings`), so nothing executable has to be written into the workspace. Copilot only reads them from the repository root (`.github/hooks/*.json`, or Claude-style in `.claude/settings.json`). In a subfolder of a larger repository, Copilot ignored them. Codex takes hooks in the same format as Claude Code, either from `.codex/hooks.json` in the workspace or at launch as config overrides (`-c hooks.<Event>=...`). In a git worktree it ignored the file and only the launch form worked, so the spike uses that. Codex refuses to run a hook the user has not reviewed unless it is started with `--dangerously-bypass-hook-trust`, which the spike used.
 
 ### Things to know
 
@@ -130,6 +130,8 @@ python3 keeper.py run copilot complete --workspace repo --accept-trust
 
 # How a harness treats different kinds of workspace
 python3 keeper.py run claude complete --workspace worktree
+python3 keeper.py run codex complete --workspace worktree
+python3 keeper.py run copilot complete --workspace worktree --accept-trust
 
 # Plain-text view of a run's terminal, for looking into a failure
 python3 keeper.py screen runs/<run>/terminal.log

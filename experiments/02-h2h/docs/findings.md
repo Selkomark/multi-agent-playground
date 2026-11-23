@@ -114,9 +114,9 @@ Extra runs tested what kind of folder a harness will start in without asking. No
 | Workspace | Claude Code | Copilot | Codex |
 |---|---|---|---|
 | Plain folder inside a repository the user already trusts | Starts | Asks | Starts |
-| Git worktree of a trusted repository | Starts (2 of 2 runs) | Not tested | Not tested |
+| Git worktree of a trusted repository | Starts (2 of 2 runs) | Asks, as for any folder in this untrusted repository | Starts |
 | New git repository inside a trusted folder | Asks | Asks | Not tested |
-| New repository in the temp directory | Asks | Not tested | Not tested |
+| New repository in the temp directory | Asks | Not tested | Asks |
 | Folder that declares hooks in its own settings | Asks, even inside a trusted repository | Asks | Starts, but each hook must be trusted separately |
 
 This repository was already trusted by Claude Code and Codex and not by Copilot, so the Copilot column shows an untrusted repository throughout.
@@ -124,7 +124,8 @@ This repository was already trusted by Claude Code and Codex and not by Copilot,
 ### What was learned
 
 - **Hooks carry the state** on all three harnesses, with different event names and one difference in meaning: Copilot fires its permission hook on every tool call, the other two only when they are about to ask.
-- **Hook configuration differs.** Claude Code accepts hooks on the command line. Copilot reads them only from the repository root. Codex reads them from the workspace and wants each hook trusted, unless started with a flag that skips that.
+- **Hook configuration differs.** Claude Code and Codex accept hooks at launch, so nothing has to be written into the workspace. Copilot reads them only from files at the repository root. Codex wants each hook reviewed by the user, unless started with a flag that skips that.
+- **Worktrees work for all three, with one catch.** In a git worktree of this repository all three completed the test task with state reported throughout. Codex ignored a hooks file placed in the worktree and only reported state once its hooks were given at launch. Copilot read its hooks file from the worktree.
 - **A busy harness is never silent**, because of its progress animation, so 15 seconds of silence is a usable sign of a frozen process. It would not catch a harness looping while still animating.
 - **Turn finished does not mean nothing is running.** Claude Code started a one-minute command in the background and ended its turn two seconds later.
 - **The model picks the tool.** With file writes pre-approved, Claude Code twice wrote a file through a shell redirect, which was not pre-approved, and stopped at a prompt.

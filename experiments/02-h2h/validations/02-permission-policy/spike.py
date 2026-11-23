@@ -73,7 +73,7 @@ def install_policy_hook(harness: str, run_dir: Path, workspace: Path) -> None:
             {"hooks": [{"type": "command", "command": command, "timeout": 120}]}
         ]
     elif harness == "codex":
-        path = workspace / ".codex" / "hooks.json"
+        path = run_dir / "hooks.json"
         settings = json.loads(path.read_text())
         settings["hooks"]["PermissionRequest"] = [
             {"hooks": [{"type": "command", "command": command, "timeout": 120}]}

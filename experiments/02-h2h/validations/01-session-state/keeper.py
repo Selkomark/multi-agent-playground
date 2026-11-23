@@ -115,11 +115,12 @@ def make_workspace(harness: str, events: Path, kind: str) -> Path:
         settings = {"hooks": {name: [hook(name)] for name in HOOK_EVENTS[harness]}}
         (events.parent / "settings.json").write_text(json.dumps(settings, indent=2))
     elif harness == "codex":
-        # Codex uses the same schema as Claude Code, read from .codex/hooks.json in a
-        # trusted project. Its separate per-hook trust is skipped with a flag at launch.
+        # Codex uses the same schema as Claude Code. It also takes hooks at launch, as
+        # config overrides, which works in a worktree where a .codex/hooks.json file in
+        # the workspace was not loaded. The hooks are kept here and turned into
+        # arguments by command_for. Its per-hook trust is skipped with a flag.
         settings = {"hooks": {name: [hook(name)] for name in HOOK_EVENTS[harness]}}
-        (workspace / ".codex").mkdir()
-        (workspace / ".codex" / "hooks.json").write_text(json.dumps(settings, indent=2))
+        (events.parent / "hooks.json").write_text(json.dumps(settings, indent=2))
     else:
         native = {
             "version": 1,
@@ -164,7 +165,16 @@ def command_for(harness: str, prompt: str, env: dict, allow_work: bool, run_dir:
         # The events file sits outside the workspace, so the run directory is made
         # writable too. A read-only sandbox does not accept extra writable folders.
         sandbox = ["--sandbox", "workspace-write", "--add-dir", str(run_dir)] if allow_work else ["--sandbox", "read-only"]
-        return [binary, "--dangerously-bypass-hook-trust", "--ask-for-approval", "on-request", *sandbox, prompt]
+        hooks: list[str] = []
+        for name, groups in json.loads((run_dir / "hooks.json").read_text())["hooks"].items():
+            handlers = ",".join(
+                "{" + ",".join(f"{key}={json.dumps(value)}" for key, value in handler.items()) + "}"
+                for group in groups for handler in group["hooks"]
+            )
+            hooks += ["-c", f"hooks.{name}=[{{hooks=[{handlers}]}}]"]
+        return [
+            binary, *hooks, "--dangerously-bypass-hook-trust", "--ask-for-approval", "on-request", *sandbox, prompt,
+        ]
     rules = ["--allow-tool=shell(h2h-report:*)"]
     if allow_work:
         rules += ["--allow-tool=write", "--allow-tool=shell(slow-task:*)"]

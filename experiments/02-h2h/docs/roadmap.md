@@ -6,7 +6,9 @@ Nothing here is scheduled. This is the order the design suggests, and the questi
 
 Two things come first:
 
-- **Try the existing tools.** Use Gas Town and CLI Agent Orchestrator for long enough to decide whether to build H2H or to build on one of them. See [prior-art.md](prior-art.md).
+- **Clean-room build.** Decided: H2H is written from scratch and copies no code from existing orchestrators. Their ideas and architecture may be reused. See [prior-art.md](prior-art.md).
+- **Permissive dependencies only.** Decided: every dependency must carry a licence a corporate audit accepts, checked in the build from the first stage. See [licensing.md](licensing.md).
+- **Try the existing tools.** Optional. Use Gas Town and CLI Agent Orchestrator to learn what works in practice.
 - **Validate the riskiest assumptions.** Done on 2026-11-20, as three short spikes under [`../validations/`](../validations/README.md): detecting session state, answering permission requests by policy, and a baseline against one harness with sub-agents. None invalidated the design, and each changed part of it. See [findings.md](findings.md).
 - **Repeat the baseline properly.** The baseline used one easy task and two or three runs per setup. Before relying on it, run a task hard enough for the builder to get wrong, at least five times per setup, with a tester of each product reviewing the same builder output.
 
@@ -50,7 +52,7 @@ The useful question is "what breaks at the boundary", more than "is the output b
 
 - **Gaps from the design review.** Session state, shared usage limits, context lifetime, shared machine resources, proof verification, instructions between harnesses, the user as bottleneck, hung sessions and harness updates. Listed with proposed directions in [risks.md](risks.md).
 - **Long permission waits.** What happens when the user takes longer than a hook's time limit, and how the session resumes once the answer arrives. Answering in code itself is confirmed; see [permissions.md](permissions.md).
-- **Workspace trust.** How H2H makes a workspace trusted for each harness without the user answering a dialog per session, and what the user approves once at setup.
+- **Workspace trust and hooks.** The approach is set out in [runtime.md](runtime.md): every harness gets a worktree inside the project, which inherits trust the user already gave, and hooks are given at launch. Still open: how Copilot gets its hooks, since it only reads them from files, and confirming Copilot's trust in a worktree.
 - **Standing instructions.** What each adapter must tell its harness, and whether harnesses keep following it over a long session.
 - **Containment.** Which sandbox or container gives each session a boundary, and what it costs in setup.
 - **Target harnesses.** Claude Code, Copilot CLI and Codex CLI, all of which run in a terminal session that the validation spikes could start and prompt. Gemini CLI is excluded: it no longer offers a personal login, so it cannot follow the "bring your own login" approach. Resume by session ID is still unverified for Copilot and Codex.
@@ -64,7 +66,8 @@ The useful question is "what breaks at the boundary", more than "is the output b
 - **Keeper pause.** How a keeper pauses a harness safely when the orchestrator is unreachable.
 - **Persistence.** How an owner keeps memory across sessions in a way that works for every harness.
 - **Domain boundaries.** How one owner requests a change in another's domain.
-- **Ticket system.** Build one, or adapt an existing tracker. Beads, the tracker behind Gas Town, is built for agents and worth evaluating.
+- **Ticket system.** Built as part of H2H, under the clean-room rule. Beads, the tracker behind Gas Town, is built for agents and is worth studying for ideas. What is open is the ticket store's design, not whether to adopt one.
+- **H2H's own licence.** Apache-2.0 is proposed and not final; see [licensing.md](licensing.md).
 - **Sub-agent visibility.** Whether an owner's sub-agents can be made visible to H2H without breaking harness-agnosticism.
 - **Domain size.** How to tell that a domain is too big for one owner before it becomes a problem.
 - **Domain contracts.** The format of the written interface between domains, and how dependents are notified of a change.

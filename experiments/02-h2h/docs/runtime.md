@@ -65,8 +65,78 @@ One entry per session, written by its keeper, plus the ticket store (for example
 
 - **Session.** One running harness with its own history. H2H records the harness's own session ID so the session can be resumed later.
 - **Workspace.** Each session gets its own working copy, for example a git worktree, so two sessions never edit the same files. H2H creates it when the session starts and removes or archives it when the session ends.
-- **Trusted workspace.** A harness asks before working in a folder it has not been told to trust, and an unanswered question stalls the session before it starts. H2H therefore creates workspaces in a form each harness already trusts, or registers them as trusted, in a setup step the user approves once. What counts as trusted differs per harness; see [findings.md](findings.md).
+- **Trusted workspace.** A harness asks before working in a folder it has not been told to trust, and an unanswered question stalls the session before it starts. See [Workspace trust](#workspace-trust).
 - **The same harness twice.** Two sessions of one product are two keepers with separate workspaces and histories.
+
+## Workspace trust
+
+The first time a harness runs in a folder, it asks the user whether to trust it and records the answer. H2H creates a new workspace for every session, so without a plan every session would stop at that question.
+
+### One behaviour for every harness
+
+A session behaves the same whichever harness runs in it: the same kind of workspace, the same way of getting trust, the same way of getting hooks. Where a harness cannot do what the others do, H2H looks for a different mechanism that gives the same result before it accepts a difference. A difference that remains is declared in the config per harness, never hidden in code.
+
+### How each harness handles trust
+
+| | Claude Code | Copilot CLI | Codex CLI |
+|---|---|---|---|
+| Trust is attached to | The git repository root. A worktree counts as its main checkout. A nested repository is separate | A folder | A project folder |
+| Covers subfolders | Yes, except nested repositories | Yes | Yes for a subfolder of a trusted repository (observed) |
+| Recorded in | `~/.claude.json`, per project path | `trustedFolders` in `~/.copilot/config.json` | `trust_level` per project in `~/.codex/config.toml` |
+| Supported way to grant it without the dialog | None for interactive sessions | `--trust-folder`, for one non-interactive run only | `codex exec --trust`, which saves it (not tested) |
+| Without a terminal (`-p`, `exec`) | No dialog is shown | Skips the folder's hooks and MCP servers unless `--trust-folder` is given | Not tested |
+
+Sources: each harness's documentation and help text, and the validation spikes. A per-launch config override did not remove Codex's dialog when tested.
+
+### The workspace model
+
+Every session, for every harness, gets a git worktree of the project, kept in one folder inside the project such as `.h2h/workspaces/`. Tested with all three:
+
+| In a worktree of the project | Claude Code | Copilot CLI | Codex CLI |
+|---|---|---|---|
+| Starts without a trust dialog, when the project is already trusted | Yes | Expected from its subfolder rule. Not confirmed, because the test project was not trusted in Copilot | Yes |
+| Hooks given at launch, with no file in the workspace | Yes, with `--settings` | No | Yes, as config overrides |
+| Hooks read from a file in the worktree | Works, but triggers the trust dialog | Yes, from `.github/hooks/` | No. The file was ignored |
+| Completed the test task with state reported throughout | Yes | Yes | Yes |
+
+So the worktree model holds for all three, and trust and hooks are handled as follows.
+
+**Trust: inherit what the user has already given.** Because workspaces sit inside the project, a project the user has trusted in a harness covers them. H2H gives no consent on the user's behalf. Where a harness does not yet trust the project, `h2h` checks before starting any session and tells the user, who consents once through the harness's own dialog or documented command.
+
+**Hooks: given at launch wherever possible.** Claude Code and Codex take hooks as launch arguments, so nothing is written into the workspace. Copilot is the exception: it reads hooks only from files. Two ways to close that gap, neither chosen yet:
+
+| Option for Copilot | Effect | Cost |
+|---|---|---|
+| A hooks file in each worktree, excluded from git | Same result as the others, per session | A file H2H must create, keep out of commits and remove |
+| Hooks installed once in Copilot's user folder, active only inside an H2H session | Nothing in any workspace | Changes the user's own Copilot setup, so it needs their consent at install |
+
+H2H does not write trust into a harness's own config files. Claude Code documents its trust entry only as something a person may edit by hand, and a tool writing to a file the harness also writes can corrupt it.
+
+Rules that follow:
+
+- **No fresh repository per session.** A new `git init` is its own trust root in Claude Code, and asked every time in the spikes.
+- **Trust is not permission.** Trusting a workspace lets the harness load its settings. What the harness may then do is decided by [permissions.md](permissions.md).
+
+### Per-harness settings in the config
+
+Where harnesses still differ, the user's config says how H2H treats each one. The defaults are the same for all, and an entry is only needed to depart from them:
+
+| Setting | Default | Example of a departure |
+|---|---|---|
+| Workspace kind | Worktree inside the project | A plain subfolder, for a harness that mishandles worktrees |
+| How trust is obtained | Inherited from the project | Ask the user at first start |
+| How hooks are delivered | At launch | A file in the workspace, for Copilot |
+| Extra launch arguments | None | A sandbox mode for Codex |
+
+The schema is not designed; see [configuration.md](configuration.md).
+
+### Not settled
+
+- **Which option for Copilot's hooks.**
+- **Copilot trust in a worktree.** Expected to follow its documented subfolder rule, and to be confirmed in a project Copilot already trusts.
+- **A project the user never opened in a harness.** The first run then needs the user present, once per harness.
+- **Trust scope.** Trusting the project also trusts whatever settings the repository carries, for every session. That is the user's existing decision, but H2H makes it apply to unattended runs.
+- **Codex's hook review.** Codex wants each hook reviewed by the user. The spikes skipped that with a flag meant for automation. Whether H2H should use that flag or have the user review H2H's hooks once is open.
 
 ## How H2H and a harness communicate
 
@@ -182,6 +252,7 @@ The web UI offers what the CLI does, plus the ticket board and proof viewer desc
 - **Single file.** Go compiles to one self-contained executable, with the web UI's files embedded in it, and cross-compiles for other systems from one machine.
 - **Fits the work.** H2H supervises processes and relays streams. Its speed is set by the models, which take seconds to minutes, so a faster language would not show.
 - **Established for this shape of tool.** Docker, Kubernetes and the GitHub CLI are written in Go.
+- **Few dependencies needed.** The standard library covers most of what H2H does, which keeps the licence audit in [licensing.md](licensing.md) short.
 
 Rust would also work and also ships as one file. It was set aside because its speed advantage does not matter here and development is slower.
 
