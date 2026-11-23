@@ -87,7 +87,7 @@ How each state is recognised:
 
   Claude Code's dialog defaults to "No, exit", and Copilot's defaults to "Yes" for this session. The spike got past Copilot's with one Enter sent blind 15 seconds after start (`--accept-trust`). The same key would make Claude Code exit.
 
-- **Hooks are configured differently.** Claude Code takes them on the command line (`--settings`), so nothing executable has to be written into the workspace. Copilot only reads them from the repository root (`.github/hooks/*.json`, or Claude-style in `.claude/settings.json`). In a subfolder of a larger repository, Copilot ignored them. Codex takes hooks in the same format as Claude Code, either from `.codex/hooks.json` in the workspace or at launch as config overrides (`-c hooks.<Event>=...`). In a git worktree it ignored the file and only the launch form worked, so the spike uses that. Codex refuses to run a hook the user has not reviewed unless it is started with `--dangerously-bypass-hook-trust`, which the spike used.
+- **Hooks are configured differently.** Claude Code takes them on the command line (`--settings`), so nothing executable has to be written into the workspace. Copilot only reads them from the repository root (`.github/hooks/*.json`, or Claude-style in `.claude/settings.json`). In a subfolder of a larger repository, Copilot ignored them. It also reads them from its user folder, `~/.copilot/hooks/`, which needs nothing in the workspace: with `--user-hooks` the keeper installs them there for the run, guarded so they do nothing outside a keeper session, and removes them afterwards. That passed the full `complete` scenario in a worktree. Codex takes hooks in the same format as Claude Code, either from `.codex/hooks.json` in the workspace or at launch as config overrides (`-c hooks.<Event>=...`). In a git worktree it ignored the file and only the launch form worked, so the spike uses that. Codex refuses to run a hook the user has not reviewed unless it is started with `--dangerously-bypass-hook-trust`, which the spike used.
 
 ### Things to know
 
@@ -132,6 +132,10 @@ python3 keeper.py run copilot complete --workspace repo --accept-trust
 python3 keeper.py run claude complete --workspace worktree
 python3 keeper.py run codex complete --workspace worktree
 python3 keeper.py run copilot complete --workspace worktree --accept-trust
+
+# Copilot with hooks in its user folder and none in the workspace.
+# Adds ~/.copilot/hooks/h2h-spike.json for the run and removes it afterwards.
+python3 keeper.py run copilot complete --workspace worktree --accept-trust --user-hooks
 
 # Plain-text view of a run's terminal, for looking into a failure
 python3 keeper.py screen runs/<run>/terminal.log

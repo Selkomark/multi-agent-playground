@@ -81,7 +81,7 @@ def clean_env(workspace: Path, events: Path) -> dict:
     return env
 
 
-def make_workspace(harness: str, events: Path, kind: str) -> Path:
+def make_workspace(harness: str, events: Path, kind: str, user_hooks: bool = False) -> Path:
     """A fresh folder for the harness to work in. The kind decides how it relates to
     folders the user has already trusted, which decides whether a trust dialog appears.
 
@@ -121,7 +121,7 @@ def make_workspace(harness: str, events: Path, kind: str) -> Path:
         # arguments by command_for. Its per-hook trust is skipped with a flag.
         settings = {"hooks": {name: [hook(name)] for name in HOOK_EVENTS[harness]}}
         (events.parent / "hooks.json").write_text(json.dumps(settings, indent=2))
-    else:
+    elif not user_hooks:
         native = {
             "version": 1,
             "hooks": {
@@ -179,6 +179,41 @@ def command_for(harness: str, prompt: str, env: dict, allow_work: bool, run_dir:
     if allow_work:
         rules += ["--allow-tool=write", "--allow-tool=shell(slow-task:*)"]
     return [binary, *rules, "-i", prompt]
+
+
+COPILOT_USER_HOOKS = Path.home() / ".copilot" / "hooks" / "h2h-spike.json"
+
+
+def install_copilot_user_hooks() -> bool:
+    """Put the keeper's hooks in Copilot's user folder, so the workspace holds none.
+
+    Each hook does nothing unless H2H_EVENTS is set, which only the keeper sets, so
+    the user's own Copilot sessions are unaffected. Returns whether the folder was
+    created, so the caller can remove exactly what was added.
+    """
+    if COPILOT_USER_HOOKS.exists():
+        sys.exit(f"{COPILOT_USER_HOOKS} already exists; not overwriting it")
+    created = not COPILOT_USER_HOOKS.parent.exists()
+    COPILOT_USER_HOOKS.parent.mkdir(parents=True, exist_ok=True)
+    hooks = {
+        name: [{
+            "type": "command",
+            "bash": f'[ -n "$H2H_EVENTS" ] || exit 0; exec {sys.executable} {HOOK} hook "$H2H_EVENTS" {name}',
+            "timeoutSec": 10,
+        }]
+        for name in HOOK_EVENTS["copilot"]
+    }
+    COPILOT_USER_HOOKS.write_text(json.dumps({"version": 1, "hooks": hooks}, indent=2))
+    return created
+
+
+def remove_copilot_user_hooks(created_folder: bool) -> None:
+    COPILOT_USER_HOOKS.unlink(missing_ok=True)
+    if created_folder:
+        try:
+            COPILOT_USER_HOOKS.parent.rmdir()
+        except OSError:
+            pass
 
 
 # ---------------------------------------------------------------- session
@@ -442,11 +477,13 @@ def scenario_hung(run: Run, workspace: Path) -> None:
 SCENARIOS = {"complete": scenario_complete, "permission": scenario_permission, "hung": scenario_hung}
 
 
-def run(harness: str, scenario: str, kind: str = "subdir", accept_trust: bool = False) -> int:
+def run(harness: str, scenario: str, kind: str = "subdir", accept_trust: bool = False, user_hooks: bool = False) -> int:
     run_dir = HERE / "runs" / f"{datetime.now():%Y%m%d-%H%M%S}-{harness}-{scenario}"
     run_dir.mkdir(parents=True)
     events = run_dir / "events.jsonl"
-    workspace = make_workspace(harness, events, kind)
+    user_hooks = user_hooks and harness == "copilot"
+    workspace = make_workspace(harness, events, kind, user_hooks)
+    created_folder = install_copilot_user_hooks() if user_hooks else False
     env = clean_env(workspace, events)
     argv = command_for(harness, PROMPTS[scenario], env, allow_work=scenario != "permission", run_dir=run_dir)
     print(f"{harness} / {scenario} / {kind} workspace\n  workspace {workspace}\n  run       {run_dir}", flush=True)
@@ -458,12 +495,15 @@ def run(harness: str, scenario: str, kind: str = "subdir", accept_trust: bool = 
     finally:
         current.stop()
         current.check("process exit is observed", session.exit_status is not None)
+        if user_hooks:
+            remove_copilot_user_hooks(created_folder)
 
     hooks = session.hooks()
     result = {
         "harness": harness,
         "scenario": scenario,
         "workspace_kind": kind,
+        "hooks_from": "user folder" if user_hooks else "launch arguments or workspace",
         "trust_keystrokes": current.trust_keys,
         "command": [a if a != PROMPTS[scenario] else "<prompt>" for a in argv],
         "passed": all(c["passed"] for c in current.checks),
@@ -513,13 +553,17 @@ def main() -> None:
         "--accept-trust", action="store_true",
         help="send one Enter if the harness shows nothing but a folder-trust dialog at start",
     )
+    r.add_argument(
+        "--user-hooks", action="store_true",
+        help="Copilot only: install the hooks in ~/.copilot/hooks for the run instead of in the workspace",
+    )
     v = sub.add_parser("screen")
     v.add_argument("log")
     args = parser.parse_args()
     if args.action == "screen":
         screen(args.log)
     else:
-        sys.exit(run(args.harness, args.scenario, args.workspace, args.accept_trust))
+        sys.exit(run(args.harness, args.scenario, args.workspace, args.accept_trust, args.user_hooks))
 
 
 if __name__ == "__main__":

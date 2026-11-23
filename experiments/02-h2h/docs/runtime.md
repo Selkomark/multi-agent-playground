@@ -96,6 +96,7 @@ Every session, for every harness, gets a git worktree of the project, kept in on
 |---|---|---|---|
 | Starts without a trust dialog, when the project is already trusted | Yes | Expected from its subfolder rule. Not confirmed, because the test project was not trusted in Copilot | Yes |
 | Hooks given at launch, with no file in the workspace | Yes, with `--settings` | No | Yes, as config overrides |
+| Hooks from the harness's user folder, with no file in the workspace | Not needed | Yes, from `~/.copilot/hooks/` (3 of 3 runs) | Not needed |
 | Hooks read from a file in the worktree | Works, but triggers the trust dialog | Yes, from `.github/hooks/` | No. The file was ignored |
 | Completed the test task with state reported throughout | Yes | Yes | Yes |
 
@@ -108,6 +109,8 @@ So the worktree model holds for all three, and trust and hooks are handled as fo
 - **Installed with consent.** The install is a setup step the user approves, because it changes their own Copilot setup. H2H shows what it will add first, and removes it again on uninstall.
 - **Inactive outside H2H.** The hooks do nothing unless the session was started by H2H, which they tell from an environment variable H2H sets. The user's ordinary Copilot sessions are unaffected.
 - **One file, owned by H2H.** H2H adds its own file and does not edit hooks the user already has.
+
+This was tested: with the hooks only in Copilot's user folder and nothing from the keeper in the worktree, Copilot reported every state and passed the full scenario, and the same hook command run without H2H's environment variable did nothing. See [findings.md](findings.md).
 
 The result is the same for all three harnesses: a workspace holds the project's files and nothing from H2H. The alternative, a hooks file in each worktree kept out of git, was set aside because it puts H2H's files into every workspace and has to be cleaned up per session.
 
@@ -133,7 +136,6 @@ The schema is not designed; see [configuration.md](configuration.md).
 
 ### Not settled
 
-- **Copilot's user-level hooks are untested.** Copilot documents `~/.copilot/hooks/` as the place for personal hooks. The spikes only used hooks at the repository root.
 - **Copilot trust in a worktree.** Expected to follow its documented subfolder rule, and to be confirmed in a project Copilot already trusts.
 - **A project the user never opened in a harness.** The first run then needs the user present, once per harness.
 - **Trust scope.** Trusting the project also trusts whatever settings the repository carries, for every session. That is the user's existing decision, but H2H makes it apply to unattended runs.
