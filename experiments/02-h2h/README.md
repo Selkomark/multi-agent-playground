@@ -4,6 +4,8 @@ _Created 2026-11-19_
 
 **Status: design, validated by three spikes.** The design is documented and H2H itself is not built. Three short spikes under [`validations/`](validations/README.md) tested the riskiest assumptions on Claude Code, Copilot CLI and Codex CLI. None invalidated the design.
 
+**The H2H design now lives in its own repository, [Selkomark/H2H](https://github.com/Selkomark/H2H).** The documents under `docs/` here are a copy as of 2026-11-23 and are no longer updated. This experiment remains the home of the validation spikes under [`validations/`](validations/README.md).
+
 ## Purpose
 
 Find out whether complete agent harnesses (Claude Code, Copilot, Codex and others) can work as a team, where each harness owns a domain of responsibility and reports status, instead of acting as a worker that answers one task and forgets.
