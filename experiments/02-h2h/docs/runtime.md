@@ -103,14 +103,15 @@ So the worktree model holds for all three, and trust and hooks are handled as fo
 
 **Trust: inherit what the user has already given.** Because workspaces sit inside the project, a project the user has trusted in a harness covers them. H2H gives no consent on the user's behalf. Where a harness does not yet trust the project, `h2h` checks before starting any session and tells the user, who consents once through the harness's own dialog or documented command.
 
-**Hooks: given at launch wherever possible.** Claude Code and Codex take hooks as launch arguments, so nothing is written into the workspace. Copilot is the exception: it reads hooks only from files. Two ways to close that gap, neither chosen yet:
+**Hooks: never written into the workspace.** Claude Code and Codex take hooks as launch arguments. Copilot reads hooks only from files, so for Copilot H2H installs its hooks once in Copilot's user folder (`~/.copilot/hooks/`), which applies to every folder:
 
-| Option for Copilot | Effect | Cost |
-|---|---|---|
-| A hooks file in each worktree, excluded from git | Same result as the others, per session | A file H2H must create, keep out of commits and remove |
-| Hooks installed once in Copilot's user folder, active only inside an H2H session | Nothing in any workspace | Changes the user's own Copilot setup, so it needs their consent at install |
+- **Installed with consent.** The install is a setup step the user approves, because it changes their own Copilot setup. H2H shows what it will add first, and removes it again on uninstall.
+- **Inactive outside H2H.** The hooks do nothing unless the session was started by H2H, which they tell from an environment variable H2H sets. The user's ordinary Copilot sessions are unaffected.
+- **One file, owned by H2H.** H2H adds its own file and does not edit hooks the user already has.
 
-H2H does not write trust into a harness's own config files. Claude Code documents its trust entry only as something a person may edit by hand, and a tool writing to a file the harness also writes can corrupt it.
+The result is the same for all three harnesses: a workspace holds the project's files and nothing from H2H. The alternative, a hooks file in each worktree kept out of git, was set aside because it puts H2H's files into every workspace and has to be cleaned up per session.
+
+This is an install of hooks, not of trust. H2H does not write trust into a harness's own config files. Claude Code documents its trust entry only as something a person may edit by hand, and a tool writing to a file the harness also writes can corrupt it.
 
 Rules that follow:
 
@@ -125,14 +126,14 @@ Where harnesses still differ, the user's config says how H2H treats each one. Th
 |---|---|---|
 | Workspace kind | Worktree inside the project | A plain subfolder, for a harness that mishandles worktrees |
 | How trust is obtained | Inherited from the project | Ask the user at first start |
-| How hooks are delivered | At launch | A file in the workspace, for Copilot |
+| How hooks are delivered | At launch, or from the harness's user folder where it has no launch option (Copilot) | A file in the workspace, for a harness that offers neither |
 | Extra launch arguments | None | A sandbox mode for Codex |
 
 The schema is not designed; see [configuration.md](configuration.md).
 
 ### Not settled
 
-- **Which option for Copilot's hooks.**
+- **Copilot's user-level hooks are untested.** Copilot documents `~/.copilot/hooks/` as the place for personal hooks. The spikes only used hooks at the repository root.
 - **Copilot trust in a worktree.** Expected to follow its documented subfolder rule, and to be confirmed in a project Copilot already trusts.
 - **A project the user never opened in a harness.** The first run then needs the user present, once per harness.
 - **Trust scope.** Trusting the project also trusts whatever settings the repository carries, for every session. That is the user's existing decision, but H2H makes it apply to unattended runs.
